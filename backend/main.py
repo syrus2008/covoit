@@ -1,89 +1,82 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, HTMLResponse  
+from fastapi.middleware.cors import CORSMiddleware
 import json
 import os
+from datetime import datetime, timedelta
+
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="frontend"), name="static")
-app.mount("/images", StaticFiles(directory="images"), name="images")
+# CORS pour permettre les requêtes depuis le frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-FESTIVALS_FILE = "backend/data/festivals.json"
-TRAJETS_FILE = "backend/data/trajets.json"
+# Rendre les fichiers statiques (HTML, CSS, JS)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
+# Serveur racine : index.html
 @app.get("/", response_class=HTMLResponse)
-async def read_index():
-    with open("frontend/index.html", "r", encoding="utf-8") as f:
-        content = f.read()
-    headers = {"ngrok-skip-browser-warning": "true"}
-    return HTMLResponse(content=content, headers=headers)
+async def read_root():
+    return FileResponse("index.html")
 
-@app.get("/api/festivals")
-async def get_festivals():
-    with open(FESTIVALS_FILE, "r", encoding="utf-8") as f:
-        return json.load(f)
+# Route pour obtenir la liste des festivals (CORRIGÉ ICI)
+@app.get("/festivals")
+def get_festivals():
+    with open("festivals.json", "r", encoding="utf-8") as f:
+        festivals = json.load(f)
+    return festivals  # ✅ On renvoie directement la liste
 
-@app.post("/api/festivals")
+# Route pour ajouter un festival
+@app.post("/festivals")
 async def add_festival(request: Request):
     new_festival = await request.json()
-    with open(FESTIVALS_FILE, "r+", encoding="utf-8") as f:
-        festivals = json.load(f)
-        new_festival["id"] = max(f["id"] for f in festivals) + 1 if festivals else 1
-        festivals.append(new_festival)
+    with open("festivals.json", "r+", encoding="utf-8") as f:
+        data = json.load(f)
+        data.append(new_festival)
         f.seek(0)
-        json.dump(festivals, f, ensure_ascii=False, indent=4)
-    return {"message": "Festival ajouté avec succès"}
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return {"message": "Festival ajouté"}
 
-@app.get("/api/trajets/{festival_id}")
-async def get_trajets(festival_id: int):
-    with open(TRAJETS_FILE, "r", encoding="utf-8") as f:
-        trajets = json.load(f)
-    return [t for t in trajets if t["festival_id"] == festival_id]
+# Routes pour servir les autres pages
+@app.get("/festival.html", response_class=HTMLResponse)
+async def get_festival_page():
+    return FileResponse("festival.html")
 
-@app.post("/api/trajets")
-async def add_trajet(request: Request):
-    new_trajet = await request.json()
-    with open(TRAJETS_FILE, "r+", encoding="utf-8") as f:
-        trajets = json.load(f)
-        trajets.append(new_trajet)
-        f.seek(0)
-        json.dump(trajets, f, ensure_ascii=False, indent=4)
-    return {"message": "Trajet ajouté avec succès"}
+@app.get("/add_festival.html", response_class=HTMLResponse)
+async def get_add_festival_page():
+    return FileResponse("add_festival.html")
 
-@app.put("/api/trajets/{festival_id}/complet")
-async def mark_complet(festival_id: int, request: Request):
-    data = await request.json()
-    index = data["index"]
-    secret = data["secret"]
-    with open(TRAJETS_FILE, "r+", encoding="utf-8") as f:
-        trajets = json.load(f)
-        filtered = [t for t in trajets if t["festival_id"] == festival_id]
-        actual = [i for i, t in enumerate(trajets) if t["festival_id"] == festival_id]
-        if index < len(filtered):
-            real_index = actual[index]
-            if trajets[real_index].get("secret") == secret:
-                trajets[real_index]["complet"] = True
-                f.seek(0)
-                f.truncate()
-                json.dump(trajets, f, ensure_ascii=False, indent=4)
-                return {"ok": True}
-    return {"error": "Mot-clé incorrect"}
+# Chat messages
+CHAT_LOG = "chat_log.json"
 
-@app.post("/api/trajets/{festival_id}/delete")
-async def delete_trajet(festival_id: int, request: Request):
-    data = await request.json()
-    index = data["index"]
-    secret = data["secret"]
-    with open(TRAJETS_FILE, "r+", encoding="utf-8") as f:
-        trajets = json.load(f)
-        filtered = [t for t in trajets if t["festival_id"] == festival_id]
-        actual = [i for i, t in enumerate(trajets) if t["festival_id"] == festival_id]
-        if index < len(filtered):
-            real_index = actual[index]
-            if trajets[real_index].get("secret") == secret:
-                del trajets[real_index]
-                f.seek(0)
-                f.truncate()
-                json.dump(trajets, f, ensure_ascii=False, indent=4)
-                return {"ok": True}
-    return {"error": "Mot-clé incorrect"}
+@app.get("/messages")
+def get_messages():
+    if not os.path.exists(CHAT_LOG):
+        return []
+    with open(CHAT_LOG, "r", encoding="utf-8") as f:
+        messages = json.load(f)
+    # Nettoyage des messages de plus de 24h
+    now = datetime.now()
+    messages = [msg for msg in messages if now - datetime.fromisoformat(msg["timestamp"]) < timedelta(hours=24)]
+    with open(CHAT_LOG, "w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=2)
+    return messages
+
+@app.post("/messages")
+async def post_message(request: Request):
+    new_msg = await request.json()
+    new_msg["timestamp"] = datetime.now().isoformat()
+    if not os.path.exists(CHAT_LOG):
+        messages = []
+    else:
+        with open(CHAT_LOG, "r", encoding="utf-8") as f:
+            messages = json.load(f)
+    messages.append(new_msg)
+    with open(CHAT_LOG, "w", encoding="utf-8") as f:
+        json.dump(messages, f, ensure_ascii=False, indent=2)
+    return {"message": "Message envoyé"}
