@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Détails du Festival</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="/static/index.html">Accueil</a></li>
+        <li><a href="/static/add_festival.html">Ajouter un festival</a></li>
+    </ul>
+</nav>
+
+    <h1 id="festival-nom"></h1>
+    <div id="trajets"></div>
+    <form id="trajet-form">
+        <input type="text" id="depart" placeholder="Ville de départ" required>
+        <input type="text" id="heure" placeholder="Heure de départ" required>
+        <input type="number" id="places" placeholder="Nombre de places" required>
+        <input type="text" id="contact" placeholder="Contact" required>
+        <input type="password" id="secret" placeholder="Mot-clé secret" required>
+        <button type="submit">Proposer un trajet</button>
+    </form>
+    <script src="/static/script.js"></script>
+</body>
+</html>
