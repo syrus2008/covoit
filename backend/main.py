@@ -1,9 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse  
 import json
 import os
-
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
