@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Trajets</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<nav>
+    <ul>
+        <li><a href="/static/index.html">Accueil</a></li>
+        <li><a href="/static/add_festival.html">Ajouter un festival</a></li>
+    </ul>
+</nav>
+
+<h1>Trajets</h1>
+<div id="trajets"></div>
+
+<h2>Proposer un trajet</h2>
+<form id="trajet-form">
+    <input type="text" id="ville" placeholder="Ville de départ" required>
+    <input type="time" id="heure" required>
+    <input type="number" id="places" placeholder="Nombre de places" required>
+    <input type="text" id="contact" placeholder="Contact" required>
+    <input type="text" id="motdepasse" placeholder="Mot-clé pour modifier ou supprimer" required>
+    <button type="submit">Proposer</button>
+</form>
+
+<script src="/static/script.js"></script>
+</body>
+</html>

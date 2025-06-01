@@ -1,0 +1,32 @@
+/* Chat styles à ajouter dans style.css */
+#chat-container {
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 1rem;
+    max-width: 400px;
+    margin: 2rem auto;
+    border-radius: 10px;
+}
+#chat-messages {
+    max-height: 200px;
+    overflow-y: auto;
+    background: #fff;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+#chat-form input[type="text"] {
+    width: calc(100% - 10px);
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+#chat-form button {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
