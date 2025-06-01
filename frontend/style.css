@@ -102,3 +102,13 @@ form button {
 form button:hover {
     background-color: #16a085;
 }
+
+
+body {
+    background-image: url('/static/img/logo.png');
+    background-repeat: no-repeat;
+    background-position: top center;
+    background-size: 160px;
+    background-attachment: fixed;
+    padding-top: 180px;
+}
